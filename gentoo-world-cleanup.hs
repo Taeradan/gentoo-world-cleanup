@@ -8,7 +8,7 @@ import qualified Data.Text as T
 import           Prelude hiding (FilePath)
 import           Turtle
 
--- worldPath = "world"
+--worldPath = "world"
 worldPath = "/var/lib/portage/world"
 
 main = do
@@ -21,9 +21,9 @@ main = do
     echo fileContent
     echo ""
 
-    rawResults <- mapM (\ x -> procStrict "equery" ["--quiet", "depends", x] empty ) programsList
+    rawResults <- mapM (\ x -> procStrict "qdepends" ["-Q", x] empty ) programsList
     let completeResults = zip programsList rawResults
-        (dependsPrograms, endPrograms) = L.partition (\ (_, (x, _)) -> isSuccess x) completeResults
+        (endPrograms, dependsPrograms) = L.partition (\ (_, (_, x)) -> T.null x) completeResults
         newWorldFile = T.unlines . map fst $ endPrograms
 
     echo "* Raw Results:"
@@ -38,8 +38,3 @@ main = do
     echo "* New world file (written to \"world.filtered\")"
     echo newWorldFile
     output "world.filtered" (return newWorldFile)
-
-
-isSuccess :: ExitCode -> Bool
-isSuccess ExitSuccess = True
-isSuccess (ExitFailure _) = False
